@@ -2,9 +2,14 @@
 
 **Applied Analytics & AI Mini Project**
 
-**Abdolhossein (Benjamin) Ayoubi**
-Master's Degree Programme in Smart Industry
+**Abdolhossein (Benjamin) Ayoubi**  
+Master's Degree Programme in Smart Industry  
 Metropolia University of Applied Sciences, 2026
+
+🔗 **Interactive Dashboard:**  
+https://hosseinayoubi.github.io/Report/
+
+A simple interactive dashboard showing the main findings, model results, and practical insights from the project.
 
 ---
 
