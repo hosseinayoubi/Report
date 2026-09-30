@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patient No-Show Dashboard</title>
+<style>
+:root{--bg:#f4f2ed;--card:#fff;--text:#1d1d1d;--muted:#686868;--line:#ddd7cd;--accent:#29465b;--soft:#e9eef1;--warn:#7b4d29}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:Garamond,Georgia,serif;line-height:1.4}
+.wrap{max-width:1080px;margin:0 auto;padding:34px 22px 60px} h1{font-size:40px;margin:0 0 6px} h2{font-size:25px;margin:0 0 14px} h3{font-size:18px;margin:0 0 8px} .sub{color:var(--muted);font-size:18px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px} .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px} .kpi{font-size:31px;font-weight:700} .label{color:var(--muted);font-size:14px}
+.section{margin-top:18px} .two{display:grid;grid-template-columns:1.1fr .9fr;gap:14px} .barrow{display:grid;grid-template-columns:110px 1fr 58px;align-items:center;gap:10px;margin:9px 0} .track{height:13px;background:#ece9e2;border-radius:6px;overflow:hidden} .bar{height:100%;background:var(--accent);border-radius:6px} .small{font-size:14px;color:var(--muted)}
+.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px} button{font:inherit;padding:7px 11px;border:1px solid var(--line);background:white;border-radius:7px;cursor:pointer} button.active{background:var(--accent);color:white;border-color:var(--accent)} table{width:100%;border-collapse:collapse;font-size:15px} th,td{padding:9px 8px;border-bottom:1px solid var(--line);text-align:right} th:first-child,td:first-child{text-align:left} th{color:var(--muted);font-weight:600} .note{background:#fbfaf7;border-left:4px solid var(--accent);padding:12px 14px;margin-top:12px} .warn{border-left-color:var(--warn)} ul{margin:8px 0 0 20px;padding:0} .footer{margin-top:28px;color:var(--muted);font-size:14px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}} @media(max-width:520px){.grid{grid-template-columns:1fr}h1{font-size:31px}}
+</style>
+</head>
+<body><div class="wrap">
+<h1>Patient Appointment No-Show Prediction</h1>
+<div class="sub">A compact view of the mini-project results</div>
+<div class="grid">
+<div class="card"><div class="kpi">110,521</div><div class="label">clean appointments</div></div>
+<div class="card"><div class="kpi">20.19%</div><div class="label">no-show rate</div></div>
+<div class="card"><div class="kpi">84.5%</div><div class="label">Random Forest recall</div></div>
+<div class="card"><div class="kpi">0.728</div><div class="label">Random Forest ROC-AUC</div></div>
+</div>
+
+<div class="section two">
+<div class="card"><h2>Waiting time</h2><div class="small">No-show rate by time between scheduling and appointment</div><div id="waiting"></div><div class="note">The pattern is strong, but it is still an association. It does not prove that waiting longer causes a no-show.</div></div>
+<div class="card"><h2>What the model uses</h2><div class="small">Top Random Forest feature importances</div><div id="features"></div></div>
+</div>
+
+<div class="section card"><h2>Model comparison</h2><div class="buttons" id="metricButtons"></div><div id="modelBars"></div><table id="metricTable"></table><div class="note">The dummy model looks good on accuracy because most patients attend. It finds zero no-shows, so recall and F1 tell the more useful story.</div></div>
+
+<div class="section two">
+<div class="card"><h2>Threshold trade-off</h2><div class="buttons" id="thresholdButtons"></div><div id="thresholdDetail"></div></div>
+<div class="card"><h2>Practical use</h2><p>I would use the model for low-risk support, not automatic decisions.</p><ul><li>Prioritize reminders.</li><li>Offer easier rescheduling.</li><li>Keep a person in the loop.</li><li>Monitor subgroup performance.</li><li>Protect patient data.</li></ul><div class="note warn">Do not use a no-show score to cancel an appointment or reduce access to care.</div></div>
+</div>
+
+<div class="footer">Source: Medical Appointment No Show dataset (Kaggle). Analysis uses a 70/30 group split by PatientId. No-show is the positive class.</div>
+</div>
+<script>
+const waiting=[{"group": "Same day", "rate": 4.65}, {"group": "1-3 days", "rate": 22.89}, {"group": "4-7 days", "rate": 25.2}, {"group": "8-14 days", "rate": 30.47}, {"group": "15-30 days", "rate": 32.59}, {"group": "31-60 days", "rate": 34.15}, {"group": "61+ days", "rate": 28.45}];
+const features=[{"feature": "Waiting days", "importance": 0.6928}, {"feature": "Age", "importance": 0.0792}, {"feature": "SMS received", "importance": 0.0648}, {"feature": "Scheduled hour", "importance": 0.0372}, {"feature": "Scheduled weekday: Tuesday", "importance": 0.0115}, {"feature": "Scheduled weekday: Friday", "importance": 0.0112}, {"feature": "Scheduled weekday: Wednesday", "importance": 0.0108}];
+const models=[{"model": "Dummy baseline", "accuracy": 0.7956, "precision": 0.0, "recall": 0.0, "f1": 0.0, "roc_auc": 0.5}, {"model": "Logistic Regression", "accuracy": 0.6632, "precision": 0.3195, "recall": 0.5739, "f1": 0.4105, "roc_auc": 0.6689}, {"model": "Decision Tree", "accuracy": 0.5733, "precision": 0.3027, "recall": 0.8347, "f1": 0.4443, "roc_auc": 0.7246}, {"model": "Random Forest", "accuracy": 0.5733, "precision": 0.3042, "recall": 0.8451, "f1": 0.4474, "roc_auc": 0.7284}];
+const thresholds=[{"threshold": 0.3, "precision": 0.2874, "recall": 0.9317, "f1": 0.4393, "flagged_pct": 66.2489}, {"threshold": 0.4, "precision": 0.2885, "recall": 0.9213, "f1": 0.4394, "flagged_pct": 65.2719}, {"threshold": 0.5, "precision": 0.3042, "recall": 0.8451, "f1": 0.4474, "flagged_pct": 56.7787}, {"threshold": 0.6, "precision": 0.3526, "recall": 0.5213, "f1": 0.4207, "flagged_pct": 30.216}];
+
+function bars(el,data,labelKey,valueKey,max=1,suffix=''){
+  el.innerHTML=data.map(d=>`<div class="barrow"><div>${d[labelKey]}</div><div class="track"><div class="bar" style="width:${Math.min(100,d[valueKey]/max*100)}%"></div></div><div>${(d[valueKey]* (suffix==='%'?1:1)).toFixed(suffix==='%'?2:3)}${suffix}</div></div>`).join('');
+}
+bars(document.getElementById('waiting'),waiting,'group','rate',40,'%');
+bars(document.getElementById('features'),features,'feature','importance',Math.max(...features.map(x=>x.importance)),'');
+
+const metricNames={accuracy:'Accuracy',precision:'Precision',recall:'Recall',f1:'F1',roc_auc:'ROC-AUC'};
+let metric='recall';
+const mb=document.getElementById('metricButtons');
+Object.keys(metricNames).forEach(k=>{const b=document.createElement('button');b.textContent=metricNames[k];b.onclick=()=>{metric=k;renderModels()};b.dataset.k=k;mb.appendChild(b)});
+function renderModels(){
+  [...mb.children].forEach(b=>b.classList.toggle('active',b.dataset.k===metric));
+  bars(document.getElementById('modelBars'),models,'model',metric,1,'');
+  document.getElementById('metricTable').innerHTML='<tr><th>Model</th><th>Accuracy</th><th>Precision</th><th>Recall</th><th>F1</th><th>ROC-AUC</th></tr>'+models.map(m=>`<tr><td>${m.model}</td><td>${m.accuracy.toFixed(3)}</td><td>${m.precision.toFixed(3)}</td><td>${m.recall.toFixed(3)}</td><td>${m.f1.toFixed(3)}</td><td>${m.roc_auc.toFixed(3)}</td></tr>`).join('');
+}
+renderModels();
+
+const tb=document.getElementById('thresholdButtons');
+thresholds.forEach(t=>{const b=document.createElement('button');b.textContent=t.threshold.toFixed(2);b.onclick=()=>renderThreshold(t,b);tb.appendChild(b)});
+function renderThreshold(t,b){[...tb.children].forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('thresholdDetail').innerHTML=`<div class="grid" style="grid-template-columns:repeat(2,1fr)"><div><div class="kpi">${(t.recall*100).toFixed(1)}%</div><div class="label">recall</div></div><div><div class="kpi">${(t.precision*100).toFixed(1)}%</div><div class="label">precision</div></div><div><div class="kpi">${t.f1.toFixed(3)}</div><div class="label">F1</div></div><div><div class="kpi">${t.flagged_pct.toFixed(1)}%</div><div class="label">appointments flagged</div></div></div>`}
+renderThreshold(thresholds.find(t=>Math.abs(t.threshold-0.5)<0.001),tb.children[2]);
+</script></body></html>
